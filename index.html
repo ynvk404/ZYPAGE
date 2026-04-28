@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Donate Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h2>Donate Dashboard</h2>
+<input id="url" style="width:400px">
+<button onclick="load()">Load</button>
+
+<p id="c"></p>
+<p id="t"></p>
+
+<table border="1">
+<tbody id="tb"></tbody>
+</table>
+
+<script>
+let chart;
+
+function fmt(v){return v.toLocaleString('vi-VN')+'đ';}
+
+async function load(){
+ const url=document.getElementById('url').value;
+ const res=await fetch('/crawl?url='+encodeURIComponent(url));
+ const data=await res.json();
+
+ let total=0;
+
+ document.getElementById('tb').innerHTML=data.map(d=>{
+  total+=d.amount;
+  return `<tr><td>${d.name}</td><td>${d.time}</td><td>${fmt(d.amount)}</td></tr>`;
+ }).join('');
+
+ document.getElementById('c').innerText=data.length;
+ document.getElementById('t').innerText=fmt(total);
+}
+</script>
+</body>
+</html>
