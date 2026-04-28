@@ -1,7 +1,7 @@
 const express = require("express");
 const puppeteer = require("puppeteer");
-const app = express();
 
+const app = express();
 app.use(express.static("public"));
 
 function parseAmount(text) {
@@ -9,16 +9,21 @@ function parseAmount(text) {
   return digits ? parseInt(digits.join(""), 10) : 0;
 }
 
+// route check sống (QUAN TRỌNG CHO RAILWAY)
+app.get("/", (req, res) => {
+  res.send("ZyPage Dashboard is running");
+});
+
 async function autoScroll(page) {
   let lastHeight = 0;
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 30; i++) {
     const newHeight = await page.evaluate(() => {
       window.scrollTo(0, document.body.scrollHeight);
       return document.body.scrollHeight;
     });
 
-    await page.waitForTimeout(800);
+    await new Promise(r => setTimeout(r, 800));
 
     if (newHeight === lastHeight) break;
     lastHeight = newHeight;
@@ -37,14 +42,15 @@ app.get("/crawl", async (req, res) => {
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage"
+        "--disable-dev-shm-usage",
+        "--single-process"
       ]
     });
 
     const page = await browser.newPage();
 
     await page.goto(url, {
-      waitUntil: "networkidle2",
+      waitUntil: "domcontentloaded",
       timeout: 60000
     });
 
@@ -52,7 +58,6 @@ app.get("/crawl", async (req, res) => {
 
     const data = await page.evaluate(() => {
       const items = document.querySelectorAll(".history_wall_item");
-
       const result = [];
 
       items.forEach(item => {
@@ -88,8 +93,9 @@ app.get("/crawl", async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 3000;
+// RAILWAY BẮT BUỘC CÁI NÀY
+const port = process.env.PORT;
 
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
   console.log("Server running on port", port);
 });
