@@ -34,12 +34,19 @@ app.get("/crawl", async (req, res) => {
   try {
     browser = await puppeteer.launch({
       headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage"
+      ]
     });
 
     const page = await browser.newPage();
 
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+    await page.goto(url, {
+      waitUntil: "networkidle2",
+      timeout: 60000
+    });
 
     await autoScroll(page);
 
@@ -56,7 +63,9 @@ app.get("/crawl", async (req, res) => {
 
         item.querySelectorAll(".awi_amount").forEach(el => {
           const t = el.innerText.trim();
-          if (/\d/.test(t) && t.includes("đ")) amountText = t;
+          if (/\d/.test(t) && t.includes("đ")) {
+            amountText = t;
+          }
         });
 
         result.push({ name, time, amountText });
@@ -80,4 +89,7 @@ app.get("/crawl", async (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log("Server running", port));
+
+app.listen(port, () => {
+  console.log("Server running on port", port);
+});
